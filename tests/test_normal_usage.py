@@ -107,12 +107,16 @@ def test_features():
 
 class NestedStructures(ImplicitDict):
     my_list: List[MyData]
+    my_list_2: List[List[int]]
+    my_list_3: List[List[List[int]]]
     my_dict: Dict[str, List[float]]
 
 
 def test_nested_structures():
     src_dict = {
         'my_list': [{'foo': 'one'}, {'foo': 'two'}],
+        'my_list_2': [[1, 2], [3, 4, 5]],
+        'my_list_3': [[[1, 2, 3], [4, 5]], [[6], [7], [8]], [[9, 10]]],
         'my_dict': {'foo': 1.23, 'bar': 4.56}
     }
     data: NestedStructures = ImplicitDict.parse(src_dict, NestedStructures)
@@ -120,6 +124,33 @@ def test_nested_structures():
     assert len(data.my_list) == 2
     assert data.my_list[0].foo == 'one'
     assert data.my_list[1].foo == 'two'
+
+    assert len(data.my_list_2) == 2
+    assert len(data.my_list_2[0]) == 2
+    assert len(data.my_list_2[1]) == 3
+    assert data.my_list_2[0][0] == 1
+    assert data.my_list_2[0][1] == 2
+    assert data.my_list_2[1][0] == 3
+    assert data.my_list_2[1][1] == 4
+    assert data.my_list_2[1][2] == 5
+
+    assert len(data.my_list_3) == 3
+    assert len(data.my_list_3[0]) == 2
+    assert len(data.my_list_3[0][0]) == 3
+    assert len(data.my_list_3[0][1]) == 2
+    assert len(data.my_list_3[1]) == 3
+    assert len(data.my_list_3[2]) == 1
+    assert len(data.my_list_3[2][0]) == 2
+    assert data.my_list_3[0][0][0] == 1
+    assert data.my_list_3[0][0][1] == 2
+    assert data.my_list_3[0][0][2] == 3
+    assert data.my_list_3[0][1][0] == 4
+    assert data.my_list_3[0][1][1] == 5
+    assert data.my_list_3[1][0][0] == 6
+    assert data.my_list_3[1][1][0] == 7
+    assert data.my_list_3[1][2][0] == 8
+    assert data.my_list_3[2][0][0] == 9
+    assert data.my_list_3[2][0][1] == 10
 
     assert len(data.my_dict) == 2
     assert data.my_dict['foo'] == 1.23

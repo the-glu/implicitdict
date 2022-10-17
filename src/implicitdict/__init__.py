@@ -52,7 +52,7 @@ class ImplicitDict(dict):
         >> '{"b": 2, "d": "foo", "a": 1}'
 
     To deserialize JSON into an ImplicitDict subclass, use ImplicitDict.parse:
-  
+
       y: MySubclass1 = ImplicitDict.parse({'b': 2, 'd': 'foo', 'a': 1}, MySubclass1)
       print(y.d)
         >> foo
@@ -175,7 +175,9 @@ def _parse_value(value, value_type: Type):
         # Type is generic
         arg_types = get_args(value_type)
         if generic_type is list:
-            if issubclass(arg_types[0], ImplicitDict):
+            if get_origin(arg_types[0]) is list:
+                return value
+            elif issubclass(arg_types[0], ImplicitDict):
                 # value is a list of some kind of ImplicitDict values
                 return [ImplicitDict.parse(item, arg_types[0]) for item in value]
             else:
