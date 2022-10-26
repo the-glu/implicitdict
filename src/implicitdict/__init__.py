@@ -1,13 +1,16 @@
+import inspect
+from dataclasses import dataclass
+
 import arrow
 import datetime
-from typing import get_args, get_origin, get_type_hints, Dict, Literal, Optional, Type, Union
+from typing import get_args, get_origin, get_type_hints, Dict, Literal, \
+    Optional, Type, Union, Set, Tuple
 
 import pytimeparse
 
 
 _DICT_FIELDS = set(dir({}))
-_KEY_ALL_FIELDS = '_all_fields'
-_KEY_OPTIONAL_FIELDS = '_optional_fields'
+_KEY_FIELDS_INFO = '_fields_info'
 
 
 class ImplicitDict(dict):
@@ -87,48 +90,17 @@ class ImplicitDict(dict):
         return parse_type(**kwargs)
 
     def __init__(self, previous_instance: Optional[dict]=None, **kwargs):
-        super(ImplicitDict, self).__init__()
+        ancestor_kwargs = {}
         subtype = type(self)
 
-        if not hasattr(subtype, _KEY_ALL_FIELDS):
-            # Enumerate all fields and default values defined for the subclass
-            all_fields = set()
-            annotations = type(self).__annotations__ if hasattr(type(self), '__annotations__') else {}
-            for key in annotations:
-                all_fields.add(key)
-
-            attributes = set()
-            for key in dir(self):
-                if key not in _DICT_FIELDS and key[0:2] != '__' and not callable(getattr(self, key)):
-                    all_fields.add(key)
-                    attributes.add(key)
-
-            # Identify which fields are Optional
-            optional_fields = set()
-            for key, field_type in annotations.items():
-                generic_type = get_origin(field_type)
-                if generic_type is Optional:
-                    optional_fields.add(key)
-                elif generic_type is Union:
-                    generic_args = get_args(field_type)
-                    if len(generic_args) == 2 and generic_args[1] is type(None):
-                        optional_fields.add(key)
-            for key in attributes:
-                if key not in annotations:
-                    optional_fields.add(key)
-
-            setattr(subtype, _KEY_ALL_FIELDS, all_fields)
-            setattr(subtype, _KEY_OPTIONAL_FIELDS, optional_fields)
-        else:
-            all_fields = getattr(subtype, _KEY_ALL_FIELDS)
-            optional_fields = getattr(subtype, _KEY_OPTIONAL_FIELDS)
+        all_fields, optional_fields = _get_fields(subtype)
 
         # Copy explicit field values passed to the constructor
         provided_values = set()
         if previous_instance:
             for key, value in previous_instance.items():
                 if key in all_fields:
-                    self[key] = value
+                    ancestor_kwargs[key] = value
                     provided_values.add(key)
         for key, value in kwargs.items():
             if key in all_fields:
@@ -137,33 +109,44 @@ class ImplicitDict(dict):
                     # actually providing a value; instead, consider it omitting a value.
                     pass
                 else:
-                    self[key] = value
+                    ancestor_kwargs[key] = value
                     provided_values.add(key)
 
         # Copy default field values
         for key in all_fields:
             if key not in provided_values:
-                if hasattr(type(self), key):
-                    self[key] = super(ImplicitDict, self).__getattribute__(key)
+                if hasattr(subtype, key):
+                    ancestor_kwargs[key] = super(ImplicitDict, self).__getattribute__(key)
 
         # Make sure all fields without a default and not labeled Optional were provided
         for key in all_fields:
-            if key not in self and key not in optional_fields:
-                raise ValueError('Required field "{}" not specified in {}'.format(key, type(self).__name__))
+            if key not in ancestor_kwargs and key not in optional_fields:
+                raise ValueError('Required field "{}" not specified in {}'.format(key, subtype.__name__))
+
+        super(ImplicitDict, self).__init__(**ancestor_kwargs)
 
     def __getattribute__(self, item):
-        if hasattr(type(self), _KEY_ALL_FIELDS) and item in getattr(type(self), _KEY_ALL_FIELDS):
-            return self[item]
+        self_type = type(self)
+        if hasattr(self_type, _KEY_FIELDS_INFO):
+            fields_info_by_type: Dict[str, FieldsInfo] = getattr(self_type, _KEY_FIELDS_INFO)
+            self_type_name = _fullname(self_type)
+            if self_type_name in fields_info_by_type:
+                if item in fields_info_by_type[self_type_name].all_fields:
+                    return self[item]
         return super(ImplicitDict, self).__getattribute__(item)
 
     def __setattr__(self, key, value):
-        if hasattr(type(self), _KEY_ALL_FIELDS):
-            if key in getattr(type(self), _KEY_ALL_FIELDS):
-                self[key] = value
-            else:
-                raise KeyError('Attribute "{}" is not defined for "{}" object'.format(key, type(self).__name__))
-        else:
-            super(ImplicitDict, self).__setattr__(key, value)
+        self_type = type(self)
+        if hasattr(self_type, _KEY_FIELDS_INFO):
+            fields_info_by_type: Dict[str, FieldsInfo] = getattr(self_type, _KEY_FIELDS_INFO)
+            self_type_name = _fullname(self_type)
+            if self_type_name in fields_info_by_type:
+                if key in fields_info_by_type[self_type_name].all_fields:
+                    self[key] = value
+                    return
+                else:
+                    raise KeyError('Attribute "{}" is not defined for "{}" object'.format(key, type(self).__name__))
+        super(ImplicitDict, self).__setattr__(key, value)
 
     def has_field_with_value(self, field_name: str) -> bool:
         return field_name in self and self[field_name] is not None
@@ -214,6 +197,83 @@ def _parse_value(value, value_type: Type):
     else:
         # value is a non-generic type that is not an ImplicitDict
         return value_type(value) if value_type else value
+
+
+@dataclass
+class FieldsInfo(object):
+    all_fields: Set[str]
+    optional_fields: Set[str]
+
+
+
+def _get_fields(subtype: Type) -> Tuple[Set[str], Set[str]]:
+    """Determine all fields and optional fields for the specified type.
+
+    When all & optional fields are determined for a type, the result is cached
+    as an entry in the _KEY_FIELDS_INFO attribute added to the type itself so
+    this evaluation only needs to be performed once per type.
+
+    Returns:
+        * Names of all fields for subtype
+        * Names of all optional fields for subtype
+    """
+    if not hasattr(subtype, _KEY_FIELDS_INFO):
+        setattr(subtype, _KEY_FIELDS_INFO, {})
+    fields_info_by_type: Dict[str, FieldsInfo] = getattr(subtype, _KEY_FIELDS_INFO)
+    subtype_name = _fullname(subtype)
+    if subtype_name not in fields_info_by_type:
+        # Enumerate fields defined for superclasses
+        all_fields = set()
+        optional_fields = set()
+        ancestors = inspect.getmro(subtype)
+        for ancestor in ancestors:
+            if issubclass(ancestor, ImplicitDict) and ancestor is not subtype and ancestor is not ImplicitDict:
+                ancestor_all_fields, ancestor_optional_fields = _get_fields(ancestor)
+                all_fields = all_fields.union(ancestor_all_fields)
+                optional_fields = optional_fields.union(ancestor_optional_fields)
+
+        # Enumerate all fields defined for the subclass
+        annotations = subtype.__annotations__ if hasattr(subtype, '__annotations__') else {}
+        for key in annotations:
+            all_fields.add(key)
+
+        attributes = set()
+        for key in dir(subtype):
+            if (
+                    key != _KEY_FIELDS_INFO
+                    and key not in _DICT_FIELDS
+                    and key[0:2] != '__'
+                    and not callable(getattr(subtype, key))
+            ):
+                all_fields.add(key)
+                attributes.add(key)
+
+        # Identify which fields are Optional
+        for key, field_type in annotations.items():
+            generic_type = get_origin(field_type)
+            if generic_type is Optional:
+                optional_fields.add(key)
+            elif generic_type is Union:
+                generic_args = get_args(field_type)
+                if len(generic_args) == 2 and generic_args[1] is type(None):
+                    optional_fields.add(key)
+        for key in attributes:
+            if key not in annotations:
+                optional_fields.add(key)
+
+        fields_info_by_type[subtype_name] = FieldsInfo(
+            all_fields=all_fields,
+            optional_fields=optional_fields
+        )
+    result = fields_info_by_type[subtype_name]
+    return result.all_fields, result.optional_fields
+
+
+def _fullname(class_type: Type) -> str:
+    module = class_type.__module__
+    if module == "builtins":
+        return class_type.__qualname__  # avoid outputs like 'builtins.str'
+    return module + "." + class_type.__qualname__
 
 
 class StringBasedTimeDelta(str):
