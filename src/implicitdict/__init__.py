@@ -233,7 +233,7 @@ def _get_fields(subtype: Type) -> Tuple[Set[str], Set[str]]:
                 optional_fields = optional_fields.union(ancestor_optional_fields)
 
         # Enumerate all fields defined for the subclass
-        annotations = subtype.__annotations__ if hasattr(subtype, '__annotations__') else {}
+        annotations = get_type_hints(subtype)
         for key in annotations:
             all_fields.add(key)
 
