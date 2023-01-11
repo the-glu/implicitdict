@@ -244,6 +244,7 @@ def _get_fields(subtype: Type) -> Tuple[Set[str], Set[str]]:
                     and key not in _DICT_FIELDS
                     and key[0:2] != '__'
                     and not callable(getattr(subtype, key))
+                    and not isinstance(getattr(subtype, key), property)
             ):
                 all_fields.add(key)
                 attributes.add(key)

@@ -40,6 +40,20 @@ def test_fully_defined():
     assert "foo5" in s
 
 
+def test_over_defined():
+    data = MyData(
+        required_field="foo1",
+        optional_field1="foo2",
+        field_with_default="foo3",
+        optional_field2_with_none_default="foo4",
+        optional_field3_with_default="foo5",
+        unknown_field="foo6",
+    )
+    d = json.loads(json.dumps(data))
+    d["another_unknown_field"] = {"third_unknown_field": "foo7"}
+    _ = ImplicitDict.parse(d, MyData)
+
+
 def test_minimally_defined():
     # An unspecified optional field will not be present in the object at all
     data = MyData(required_field="foo1")
