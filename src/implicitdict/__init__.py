@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 import arrow
 import datetime
+from datetime import datetime as datetime_type
 from typing import get_args, get_origin, get_type_hints, Dict, Literal, \
     Optional, Type, Union, Set, Tuple
 
@@ -279,23 +280,57 @@ def _fullname(class_type: Type) -> str:
 
 class StringBasedTimeDelta(str):
     """String that only allows values which describe a timedelta."""
-    def __new__(cls, value):
+
+    timedelta: datetime.timedelta
+    """Timedelta matching the string value of this instance."""
+
+    def __new__(cls, value: Union[str, datetime.timedelta, int, float], reformat: bool = False):
+        """Create a new StringBasedTimeDelta.
+
+        Args:
+            value: Timedelta representation.  May be a pytimeparse-compatible string, Python timedelta, or number of
+              seconds (float).
+            reformat: If true, override a provided string with a string representation of the parsed timedelta.
+        """
         if isinstance(value, str):
             dt = datetime.timedelta(seconds=pytimeparse.parse(value))
-        else:
+            s = str(dt) if reformat else value
+        elif isinstance(value, float) or isinstance(value, int):
+            dt = datetime.timedelta(seconds=value)
+            s = f'{value}s'
+        elif isinstance(value, datetime.timedelta):
             dt = value
-        str_value = str.__new__(cls, str(dt))
+            s = str(dt)
+        else:
+            raise ValueError(f'Could not parse type {type(value).__name__} into StringBasedTimeDelta')
+        str_value = str.__new__(cls, s)
         str_value.timedelta = dt
         return str_value
 
 
 class StringBasedDateTime(str):
-    """String that only allows values which describe a datetime."""
-    def __new__(cls, value):
+    """String that only allows values which describe an absolute datetime."""
+
+    datetime: datetime.datetime
+    """Timezone-aware datetime matching the string value of this instance."""
+
+    def __new__(cls, value: Union[str, datetime_type, arrow.Arrow], reformat: bool = False):
+        """Create a new StringBasedDateTime instance.
+
+        Args:
+            value: Datetime representation.  May be an ISO/RFC3339-compatible string, datetime, or arrow.  If timezone
+              is not specified, UTC will be assumed.
+            reformat: If true, override a provided string with a string representation of the parsed datetime.
+        """
+        t_arrow = arrow.get(value)
         if isinstance(value, str):
-            t = arrow.get(value).datetime
+            s = t_arrow.isoformat() if reformat else value
+            zuluize = reformat
         else:
-            t = value
-        str_value = str.__new__(cls, arrow.get(t).to('UTC').format('YYYY-MM-DDTHH:mm:ss.SSSSSS') + 'Z')
-        str_value.datetime = t
+            s = t_arrow.isoformat()
+            zuluize = True
+        if zuluize and s.endswith('+00:00'):
+            s = s[0:-len('+00:00')] + 'Z'
+        str_value = str.__new__(cls, s)
+        str_value.datetime = t_arrow.datetime
         return str_value
