@@ -159,14 +159,13 @@ def _parse_value(value, value_type: Type):
         # Type is generic
         arg_types = get_args(value_type)
         if generic_type is list:
-            if get_origin(arg_types[0]) is list:
-                return value
-            elif issubclass(arg_types[0], ImplicitDict):
-                # value is a list of some kind of ImplicitDict values
-                return [ImplicitDict.parse(item, arg_types[0]) for item in value]
-            else:
-                # value is a list of non-ImplicitDict values
-                return value
+            try:
+                value_list = [v for v in value]
+            except TypeError as e:
+                if "not iterable" in str(e):
+                    raise ValueError(f"Cannot parse non-iterable value '{value}' of type '{type(value).__name__}' into list type '{value_type}'")
+                raise
+            return [_parse_value(v, arg_types[0]) for v in value_list]
 
         elif generic_type is dict:
             # value is a dict of some kind

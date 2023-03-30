@@ -117,7 +117,7 @@ def test_nested_structures():
         'my_list': [{'foo': 'one'}, {'foo': 'two'}],
         'my_list_2': [[1, 2], [3, 4, 5]],
         'my_list_3': [[[1, 2, 3], [4, 5]], [[6], [7], [8]], [[9, 10]]],
-        'my_dict': {'foo': 1.23, 'bar': 4.56}
+        'my_dict': {'foo': [1.23], 'bar': [4.56]}
     }
     data: NestedStructures = ImplicitDict.parse(src_dict, NestedStructures)
 
@@ -153,5 +153,5 @@ def test_nested_structures():
     assert data.my_list_3[2][0][1] == 10
 
     assert len(data.my_dict) == 2
-    assert data.my_dict['foo'] == 1.23
-    assert data.my_dict['bar'] == 4.56
+    assert data.my_dict['foo'] == [1.23]
+    assert data.my_dict['bar'] == [4.56]

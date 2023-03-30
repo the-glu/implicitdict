@@ -46,7 +46,7 @@ def test_mutability_from_parse():
     assert data.primitive != primitive
 
     primitive_list[1] = 'three'
-    assert data.list_of_primitives[1] == 'three'
+    assert data.list_of_primitives[1] == 'two'  # <-- lists are reconstructed with `parse`
 
     generic_dict['level1'] = 'bar'
     assert data.generic_dict['level1'] == 'foo'  # <-- dicts are reconstructed with `parse`
