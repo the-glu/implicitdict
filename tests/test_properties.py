@@ -2,29 +2,7 @@ import json
 
 from implicitdict import ImplicitDict
 
-
-class MyData(ImplicitDict):
-    foo: str
-
-    @property
-    def bar(self) -> str:
-        return self.foo + 'bar'
-
-    def get_baz(self) -> str:
-        return self.foo + 'baz'
-
-    def set_baz(self, value: str) -> None:
-        self.foo = value
-
-    baz = property(get_baz, set_baz)
-
-    @property
-    def booz(self) -> str:
-        return self.foo + 'booz'
-
-    @booz.setter
-    def booz(self, value: str) -> None:
-        self.foo = value
+from .test_types import PropertiesData
 
 
 def test_property_exclusion():
@@ -37,7 +15,7 @@ def test_property_exclusion():
     setter.
     """
     # Create class instance and ensure it works as expected
-    data = MyData(foo='foo')
+    data = PropertiesData.example_value()
     assert data.bar == 'foobar'
     assert data.baz == 'foobaz'
     assert data.booz == 'foobooz'
@@ -49,7 +27,7 @@ def test_property_exclusion():
     assert 'booz' not in obj
 
     # Ensure serialization can be deserialized to class instance
-    data: MyData = ImplicitDict.parse(obj, MyData)
+    data: PropertiesData = ImplicitDict.parse(obj, PropertiesData)
 
     # Ensure deserialized instance works as expected
     assert data.bar == 'foobar'

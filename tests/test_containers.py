@@ -1,31 +1,8 @@
-from typing import List, Optional
-
-from implicitdict import ImplicitDict
-
-
-class MySpecialClass(str):
-    @property
-    def is_special(self) -> bool:
-        return True
-
-
-class MyContainers(ImplicitDict):
-    single_value: MySpecialClass
-    value_list: List[MySpecialClass]
-    optional_list: Optional[List[MySpecialClass]]
-    optional_value_list: List[Optional[MySpecialClass]]
-    list_of_lists: List[List[MySpecialClass]]
+from .test_types import ContainerData
 
 
 def test_container_item_value_casting():
-    containers: MyContainers = ImplicitDict.parse(
-        {
-            "single_value": "foo",
-            "value_list": ["value1", "value2"],
-            "optional_list": ["bar"],
-            "optional_value_list": ["baz", None],
-            "list_of_lists": [["list1v1", "list1v2"], ["list2v1"]]
-        }, MyContainers)
+    containers: ContainerData = ContainerData.example_value()
 
     assert containers.single_value.is_special
 

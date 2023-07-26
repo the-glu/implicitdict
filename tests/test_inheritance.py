@@ -1,32 +1,12 @@
 import json
-from typing import Optional
 
 from implicitdict import ImplicitDict
 
-
-class MyData(ImplicitDict):
-    foo: str
-    bar: int = 0
-    baz: Optional[float]
-    has_default_baseclass: str = "In MyData"
-
-    def hello(self) -> str:
-        return "MyData"
-
-    def base_method(self) -> int:
-        return 123
-
-
-class MySubclass(MyData):
-    buzz: Optional[str]
-    has_default_subclass: str = "In MySubclass"
-
-    def hello(self) -> str:
-        return "MySubclass"
+from .test_types import InheritanceData, MySubclass
 
 
 def test_inheritance():
-    data: MyData = ImplicitDict.parse({'foo': 'asdf', 'bar': 1}, MyData)
+    data: InheritanceData = InheritanceData.example_value()
     assert json.loads(json.dumps(data)) == {"foo": "asdf", "bar": 1, "has_default_baseclass": "In MyData"}
     assert data.hello() == "MyData"
     assert data.has_default_baseclass == "In MyData"
@@ -56,7 +36,7 @@ def test_inheritance():
     subclass.has_default_baseclass = "In MyData 3"
     subclass.has_default_subclass = "In MySubclass 3"
 
-    data2 = MyData(subclass)
+    data2 = InheritanceData(subclass)
     assert data2.foo == "asdf"
     assert data2.bar == 1
     assert "baz" not in data2

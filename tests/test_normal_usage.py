@@ -5,16 +5,12 @@ from typing import Dict, List, Literal, Optional
 
 from implicitdict import ImplicitDict, StringBasedDateTime, StringBasedTimeDelta
 
-
-class MyData(ImplicitDict):
-    foo: str
-    bar: int = 0
-    baz: Optional[float]
+from .test_types import NormalUsageData
 
 
 def test_basic_usage():
     # Most basic usage is to parse a plain dict into an ImplicitDict...
-    data: MyData = ImplicitDict.parse({'foo': 'asdf', 'bar': 1}, MyData)
+    data: NormalUsageData = ImplicitDict.parse({'foo': 'asdf', 'bar': 1}, NormalUsageData)
     # ...and implicitly serialize the ImplicitDict to a plain dict
     assert json.dumps(data) == '{"foo": "asdf", "bar": 1}'
 
@@ -31,18 +27,18 @@ def test_basic_usage():
         assert data.baz == 0
 
     # Optional fields can be omitted (fields with defaults are optional)
-    data = MyData(foo='asdf')
+    data = NormalUsageData(foo='asdf')
     assert json.loads(json.dumps(data)) == {'foo': 'asdf', 'bar': 0}
 
     # Optional fields can be specified
-    data = ImplicitDict.parse({'foo': 'asdf', 'baz': 1.23}, MyData)
+    data = ImplicitDict.parse({'foo': 'asdf', 'baz': 1.23}, NormalUsageData)
     assert json.loads(json.dumps(data)) == {'foo': 'asdf', 'bar': 0, 'baz': 1.23}
     assert 'baz' in data
     assert data.baz == 1.23
 
     # Failing to specify a required field ("foo") raises a ValueError
     with pytest.raises(ValueError):
-        MyData(bar=1)
+        NormalUsageData(bar=1)
 
 
 class MyIntEnum(int, Enum):
@@ -63,7 +59,7 @@ class Features(ImplicitDict):
     t_start: StringBasedDateTime
     my_duration: StringBasedTimeDelta
     my_literal: Literal['Must be this string']
-    nested: Optional[MyData]
+    nested: Optional[NormalUsageData]
 
 
 def test_features():
@@ -106,7 +102,7 @@ def test_features():
 
 
 class NestedStructures(ImplicitDict):
-    my_list: List[MyData]
+    my_list: List[NormalUsageData]
     my_list_2: List[List[int]]
     my_list_3: List[List[List[int]]]
     my_dict: Dict[str, List[float]]
