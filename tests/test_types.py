@@ -148,10 +148,11 @@ class SpecialTypesData(ImplicitDict):
     datetime: StringBasedDateTime
     timedelta: StringBasedTimeDelta
     yesno: YesNo
+    boolean: bool
 
     @staticmethod
     def example_value():
-        return ImplicitDict.parse({"datetime": datetime.utcnow().isoformat(), "timedelta": "12h", "yesno": "Yes"}, SpecialTypesData)
+        return ImplicitDict.parse({"datetime": datetime.utcnow().isoformat(), "timedelta": "12h", "yesno": "Yes", "boolean": "true"}, SpecialTypesData)
 
 
 class NestedDefinitionsData(ImplicitDict):
@@ -159,4 +160,4 @@ class NestedDefinitionsData(ImplicitDict):
 
     @staticmethod
     def example_value():
-        return ImplicitDict.parse({"special_types": {"datetime": datetime.utcnow().isoformat(), "timedelta": "12h", "yesno": "Yes"}}, NestedDefinitionsData)
+        return ImplicitDict.parse({"special_types": {"datetime": datetime.utcnow().isoformat(), "timedelta": "12h", "yesno": "Yes", "boolean": "true"}}, NestedDefinitionsData)

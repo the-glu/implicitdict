@@ -162,6 +162,9 @@ def _schema_for(value_type: Type, schema_vars_resolver: SchemaVarsResolver, sche
         make_json_schema(value_type, schema_vars_resolver, schema_repository)
         return {"$ref": schema_vars.path_to(value_type, context)}, False
 
+    if value_type == bool or issubclass(value_type, bool):
+        return {"type": "boolean"}, False
+
     if value_type == float or issubclass(value_type, float):
         return {"type": "number"}, False
 

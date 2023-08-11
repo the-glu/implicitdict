@@ -1,5 +1,4 @@
 import json
-import os.path
 from typing import Type
 
 import implicitdict.jsonschema
