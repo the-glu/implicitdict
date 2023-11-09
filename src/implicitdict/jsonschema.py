@@ -187,6 +187,9 @@ def _schema_for(value_type: Type, schema_vars_resolver: SchemaVarsResolver, sche
     if value_type == dict or issubclass(value_type, dict):
         return {"type": "object"}, False
 
+    if hasattr(value_type, "__orig_bases__") and value_type.__orig_bases__:
+        return _schema_for(value_type.__orig_bases__[0], schema_vars_resolver, schema_repository, context)
+
     raise NotImplementedError(f"Automatic JSON schema generation for {value_type} type is not yet implemented")
 
 

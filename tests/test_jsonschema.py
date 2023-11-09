@@ -6,7 +6,8 @@ from implicitdict.jsonschema import SchemaVars
 from implicitdict import ImplicitDict
 import jsonschema
 
-from .test_types import ContainerData, InheritanceData, NestedDefinitionsData, NormalUsageData, OptionalData, PropertiesData, SpecialTypesData
+from .test_types import ContainerData, InheritanceData, NestedDefinitionsData, NormalUsageData, OptionalData, \
+    PropertiesData, SpecialTypesData, SpecialSubclassesContainer
 
 
 def _resolver(t: Type) -> SchemaVars:
@@ -71,6 +72,16 @@ def test_containers():
 def test_inheritance():
     data = InheritanceData.example_value()
     _verify_schema_validation(data, InheritanceData)
+
+    data = SpecialSubclassesContainer.example_value()
+    _verify_schema_validation(data, SpecialSubclassesContainer)
+    repo = {}
+    implicitdict.jsonschema.make_json_schema(SpecialSubclassesContainer, _resolver, repo)
+    name = _resolver(SpecialSubclassesContainer).name
+    schema = repo[name]
+    props = schema["properties"]
+    assert "special_list" in props
+    assert "special_complex_list" in props
 
 
 def test_optional():

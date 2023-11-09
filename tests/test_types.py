@@ -55,6 +55,25 @@ class MySubclass(InheritanceData):
         return "MySubclass"
 
 
+class SpecialListClass(List[MySpecialClass]):
+    def hello(self) -> str:
+        return "SpecialListClass"
+
+
+class SpecialComplexListClass(List[MySubclass]):
+    def hello(self) -> str:
+        return "SpecialComplexListClass"
+
+
+class SpecialSubclassesContainer(ImplicitDict):
+    special_list: SpecialListClass
+    special_complex_list: SpecialComplexListClass
+
+    @staticmethod
+    def example_value():
+        return ImplicitDict.parse({'special_list': ['foo'], 'special_complex_list': [{'foo': 'oof'}]}, SpecialSubclassesContainer)
+
+
 class MutabilityData(ImplicitDict):
     primitive: str
     list_of_primitives: List[str]

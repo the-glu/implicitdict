@@ -2,7 +2,8 @@ import json
 
 from implicitdict import ImplicitDict
 
-from .test_types import InheritanceData, MySubclass
+from .test_types import InheritanceData, MySubclass, SpecialSubclassesContainer, SpecialListClass, MySpecialClass, \
+    SpecialComplexListClass
 
 
 def test_inheritance():
@@ -49,3 +50,18 @@ def test_inheritance():
     assert subclass2.buzz == "burrs"
     assert subclass.has_default_baseclass == "In MyData 3"
     assert subclass.has_default_subclass == "In MySubclass 3"
+
+
+def test_inherited_classes():
+    data: SpecialSubclassesContainer = SpecialSubclassesContainer.example_value()
+    assert isinstance(data.special_list, SpecialListClass)
+    assert data.special_list.hello() == "SpecialListClass"
+    for item in data.special_list:
+        assert isinstance(item, MySpecialClass)
+        assert item.is_special
+
+    assert isinstance(data.special_complex_list, SpecialComplexListClass)
+    assert data.special_complex_list.hello() == "SpecialComplexListClass"
+    for item in data.special_complex_list:
+        assert isinstance(item, MySubclass)
+        assert item.hello() == "MySubclass"

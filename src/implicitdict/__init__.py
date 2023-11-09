@@ -226,6 +226,9 @@ def _parse_value(value, value_type: Type):
         # value is an ImplicitDict
         return ImplicitDict.parse(value, value_type)
 
+    if hasattr(value_type, "__orig_bases__") and value_type.__orig_bases__:
+        return value_type(_parse_value(value, value_type.__orig_bases__[0]))
+
     else:
         # value is a non-generic type that is not an ImplicitDict
         return value_type(value) if value_type else value
