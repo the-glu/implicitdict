@@ -55,6 +55,13 @@ def test_minimally_defined():
     assert "optional_field3" in s
     assert "foo1" in s
 
+def test_getattr():
+    """Test that getattr is returning default value undefined fields"""
+
+    data = OptionalData.example_values()["minimally_defined"]
+    assert "optional_field1" not in data
+    assert getattr(data, "optional_field1", "getattrdefault") == "getattrdefault"
+
 
 def test_provide_optional_field():
     data = OptionalData.example_values()["provide_optional_field"]
