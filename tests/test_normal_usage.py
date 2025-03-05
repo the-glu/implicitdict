@@ -23,7 +23,7 @@ def test_basic_usage():
 
     # Optional fields that aren't specified simply don't exist
     assert 'baz' not in data
-    with pytest.raises(KeyError):
+    with pytest.raises(AttributeError):
         assert data.baz == 0
 
     # Optional fields can be omitted (fields with defaults are optional)
