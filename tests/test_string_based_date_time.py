@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import arrow
 import pytest
@@ -10,7 +10,7 @@ ZERO_SKEW = timedelta(microseconds=0)
 
 
 def test_consistency():
-    t = datetime.utcnow()
+    t = datetime.now()
     sbdt = StringBasedDateTime(t)
     with pytest.raises(TypeError):  # can't subtract offset-naive and offset-aware datetimes
         assert abs(sbdt.datetime - t) <= ZERO_SKEW
@@ -75,6 +75,6 @@ def test_non_mutation():
 def test_zulu_default():
     """When a non-string datetime is provided, expect the string representation to use Z as the UTC timezone."""
 
-    assert StringBasedDateTime(datetime.utcnow()).endswith('Z')
+    assert StringBasedDateTime(datetime.now(timezone.utc)).endswith('Z')
     assert StringBasedDateTime(arrow.utcnow().datetime).endswith('Z')
     assert StringBasedDateTime(arrow.utcnow()).endswith('Z')
