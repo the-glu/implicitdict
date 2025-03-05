@@ -197,9 +197,9 @@ def _field_docs_for(t: Type[ImplicitDict]) -> Dict[str, str]:
     # Curse Guido for rejecting PEP224!  Fine, we'll do it ourselves.
     result = {}
     src = inspect.getsource(t)
-    doc_pattern = r"\n\s+([_a-zA-Z][_a-zA-Z0-9]*)(?:: [^\n]+)?\n(\s+)(?:\"\"\"|''')((?:.|\s)*?)(?:\"\"\"|''')"
+    doc_pattern = r"\n([ \t]+)([_a-zA-Z][_a-zA-Z0-9]*)(?:: [^\n]+)?\n\1(?:\"\"\"|''')((?:.|\s)*?)(?:\"\"\"|''')"
     for m in re.finditer(doc_pattern, src):
-        indent = m.group(2)
+        indent = m.group(1)
         lines = m.group(3).split("\n")
         for i in range(1, len(lines)):
             if lines[i].startswith(indent):
@@ -207,5 +207,5 @@ def _field_docs_for(t: Type[ImplicitDict]) -> Dict[str, str]:
         while not lines[-1]:
             lines = lines[0:-1]
         docstring = "\n".join(lines)
-        result[m.group(1)] = docstring
+        result[m.group(2)] = docstring
     return result
