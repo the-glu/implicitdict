@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta, timezone
 
 import arrow
 import pytest
@@ -75,6 +75,6 @@ def test_non_mutation():
 def test_zulu_default():
     """When a non-string datetime is provided, expect the string representation to use Z as the UTC timezone."""
 
-    assert StringBasedDateTime(datetime.now(UTC)).endswith('Z')
+    assert StringBasedDateTime(datetime.now(timezone.utc)).endswith('Z')
     assert StringBasedDateTime(arrow.utcnow().datetime).endswith('Z')
     assert StringBasedDateTime(arrow.utcnow()).endswith('Z')
