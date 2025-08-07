@@ -25,6 +25,7 @@ def test_fully_defined():
     assert "foo3" in s
     assert "foo4" in s
     assert "foo5" in s
+    assert "foo6" in s
 
 
 def test_over_defined():

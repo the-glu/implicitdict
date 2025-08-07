@@ -7,6 +7,7 @@ import datetime
 from datetime import datetime as datetime_type
 from typing import get_args, get_origin, get_type_hints, Dict, Literal, \
     Optional, Type, Union, Set, Tuple
+from types import UnionType
 
 import pytimeparse
 
@@ -207,7 +208,7 @@ def _parse_value(value, value_type: Type):
                 result[parsed_key] = parsed_value
             return result
 
-        elif generic_type is Union and len(arg_types) == 2 and arg_types[1] is type(None):
+        elif (generic_type is Union or generic_type is UnionType) and len(arg_types) == 2 and arg_types[1] is type(None):
             # Type is an Optional declaration
             if value is None:
                 # An optional field specified explicitly as None is equivalent to
@@ -292,7 +293,7 @@ def _get_fields(subtype: Type) -> Tuple[Set[str], Set[str]]:
             generic_type = get_origin(field_type)
             if generic_type is Optional:
                 optional_fields.add(key)
-            elif generic_type is Union:
+            elif generic_type is Union or generic_type is UnionType:
                 generic_args = get_args(field_type)
                 if len(generic_args) == 2 and generic_args[1] is type(None):
                     optional_fields.add(key)

@@ -4,6 +4,7 @@ from datetime import datetime
 import enum
 import json
 import re
+from types import UnionType
 from typing import get_args, get_origin, get_type_hints, Dict, Literal, Optional, Type, Union, Tuple, Callable
 
 from . import ImplicitDict, _fullname, _get_fields, StringBasedDateTime, StringBasedTimeDelta
@@ -138,7 +139,7 @@ def _schema_for(value_type: Type, schema_vars_resolver: SchemaVarsResolver, sche
                 schema["additionalProperties"] = value_schema
             return schema, False
 
-        elif generic_type is Union and len(arg_types) == 2 and arg_types[1] is type(None):
+        elif (generic_type is Union or generic_type is UnionType) and len(arg_types) == 2 and arg_types[1] is type(None):
             # Type is an Optional declaration
             subschema, _ = _schema_for(arg_types[0], schema_vars_resolver, schema_repository, context)
             schema = json.loads(json.dumps(subschema))

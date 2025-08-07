@@ -29,7 +29,7 @@ authors = [
 description = "ImplicitDict base class that turns a subclass into a dict indexing attributes, making [de]serialization easy for complex typing-annotated data types."
 readme = "README.md"
 license = { file = "LICENSE.md" }
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: Apache Software License",

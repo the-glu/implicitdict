@@ -103,6 +103,7 @@ class OptionalData(ImplicitDict):
     field_with_default: str = "default value"
     optional_field2_with_none_default: Optional[str] = None
     optional_field3_with_default: Optional[str] = "concrete default"
+    new_style_optional: str | None
 
     @staticmethod
     def example_values():
@@ -113,6 +114,7 @@ class OptionalData(ImplicitDict):
                 field_with_default="foo3",
                 optional_field2_with_none_default="foo4",
                 optional_field3_with_default="foo5",
+                new_style_optional="foo6",
             ),
             "over_defined": OptionalData(
                 required_field="foo1",
@@ -120,7 +122,8 @@ class OptionalData(ImplicitDict):
                 field_with_default="foo3",
                 optional_field2_with_none_default="foo4",
                 optional_field3_with_default="foo5",
-                unknown_field="foo6",
+                new_style_optional="foo6",
+                unknown_field="foo7",
             ),
             "minimally_defined": OptionalData(required_field="foo1"),
             "provide_optional_field": OptionalData(required_field="foo1", optional_field1="foo2"),
