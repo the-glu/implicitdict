@@ -42,8 +42,8 @@ def test_minimally_defined():
     assert "field_with_default" in data
     assert "optional_field2_with_none_default" in data
     assert "optional_field3_with_default" in data
-    with pytest.raises(KeyError):
-        # Trying to reference the Optional field will result in a KeyError
+    with pytest.raises(AttributeError):
+        # Trying to reference the Optional field will result in a AttributeError
         # To determine whether an Optional field is present, the user must check
         # whether `"<FIELD_NAME>" in <OBJECT>` (see above).
         assert data.optional_field1 == None
@@ -54,6 +54,13 @@ def test_minimally_defined():
     assert "optional_field2" in s
     assert "optional_field3" in s
     assert "foo1" in s
+
+def test_getattr():
+    """Test that getattr is returning default value undefined fields"""
+
+    data = OptionalData.example_values()["minimally_defined"]
+    assert "optional_field1" not in data
+    assert getattr(data, "optional_field1", "getattrdefault") == "getattrdefault"
 
 
 def test_provide_optional_field():

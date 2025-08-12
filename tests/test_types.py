@@ -1,5 +1,5 @@
 import enum
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List
 
 from implicitdict import ImplicitDict, StringBasedDateTime, StringBasedTimeDelta
@@ -87,12 +87,12 @@ class NormalUsageData(ImplicitDict):
 
     bar: int = 0
     """The bar of the data.
-    
+
     Indents should not be included in docstrings."""
 
     baz: Optional[float]
     """If this baz is specified, it provides additional information.
-    
+
     Final docstring newlines should be omitted.
     """
 
@@ -171,7 +171,7 @@ class SpecialTypesData(ImplicitDict):
 
     @staticmethod
     def example_value():
-        return ImplicitDict.parse({"datetime": datetime.utcnow().isoformat(), "timedelta": "12h", "yesno": "Yes", "boolean": "true"}, SpecialTypesData)
+        return ImplicitDict.parse({"datetime": datetime.now(timezone.utc).isoformat(), "timedelta": "12h", "yesno": "Yes", "boolean": "true"}, SpecialTypesData)
 
 
 class NestedDefinitionsData(ImplicitDict):
@@ -179,4 +179,4 @@ class NestedDefinitionsData(ImplicitDict):
 
     @staticmethod
     def example_value():
-        return ImplicitDict.parse({"special_types": {"datetime": datetime.utcnow().isoformat(), "timedelta": "12h", "yesno": "Yes", "boolean": "true"}}, NestedDefinitionsData)
+        return ImplicitDict.parse({"special_types": {"datetime": datetime.now(timezone.utc).isoformat(), "timedelta": "12h", "yesno": "Yes", "boolean": "true"}}, NestedDefinitionsData)

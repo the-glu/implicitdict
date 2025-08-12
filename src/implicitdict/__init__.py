@@ -152,7 +152,10 @@ class ImplicitDict(dict):
             self_type_name = _fullname(self_type)
             if self_type_name in fields_info_by_type:
                 if item in fields_info_by_type[self_type_name].all_fields:
-                    return self[item]
+                    try:
+                        return self[item]
+                    except KeyError:
+                        raise AttributeError
         return super(ImplicitDict, self).__getattribute__(item)
 
     def __setattr__(self, key, value):
@@ -165,7 +168,7 @@ class ImplicitDict(dict):
                     self[key] = value
                     return
                 else:
-                    raise KeyError('Attribute "{}" is not defined for "{}" object'.format(key, type(self).__name__))
+                    raise AttributeError('Attribute "{}" is not defined for "{}" object'.format(key, type(self).__name__))
         super(ImplicitDict, self).__setattr__(key, value)
 
     def has_field_with_value(self, field_name: str) -> bool:
