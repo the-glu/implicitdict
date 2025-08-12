@@ -35,9 +35,19 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
 ]
-dependencies = ["arrow", "jsonschema", "pytimeparse"]
-[project.optional-dependencies]
-dev = ["pytest==8.3.4", "pytest-cov[all]", "black==24.8.0"]
+dependencies = [
+  "arrow==1.2.3",
+  "jsonschema==4.17.3",
+  "pytimeparse==1.1.8"
+]
+
+[dependency-groups]
+dev = [
+  "pytest==8.3.4",
+  "pytest-cov[all]",
+  "black==24.8.0"
+]
+
 [project.urls]
 "Homepage" = "https://github.com/interuss/implicitdict"
 "Bug Tracker" = "https://github.com/interuss/implicitdict/issues"
